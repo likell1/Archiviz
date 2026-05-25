@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { DiagramSchema } from '@/types/diagram';
 import { useDiagramStore } from '@/store/diagramStore';
+import { buildShareUrl, readDiagramFromHash } from '@/lib/share';
 
 const DiagramCanvas = dynamic(() => import('@/components/diagram/DiagramCanvas'), {
   ssr: false,
@@ -29,6 +30,23 @@ export default function Home() {
   const canRedo = useDiagramStore((s) => s.future.length > 0);
 
   const canvasRef = useRef<HTMLDivElement>(null);
+  const [copied, setCopied] = useState(false);
+
+  // URL 해시에서 다이어그램 복원
+  useEffect(() => {
+    const shared = readDiagramFromHash();
+    if (shared) setDiagram(shared);
+  }, [setDiagram]);
+
+  // 다이어그램 변경 시 URL 해시 업데이트
+  useEffect(() => {
+    if (!diagram) {
+      history.replaceState(null, '', window.location.pathname);
+      return;
+    }
+    const url = buildShareUrl(diagram);
+    history.replaceState(null, '', url);
+  }, [diagram]);
 
   async function handleAnalyze(e: React.FormEvent) {
     e.preventDefault();
@@ -59,13 +77,23 @@ export default function Home() {
   }
 
   async function handleExport() {
-    if (!canvasRef.current) return;
+    const reactFlowViewport = canvasRef.current?.querySelector('.react-flow__viewport') as HTMLElement | null;
+    const target = reactFlowViewport ?? canvasRef.current;
+    if (!target) return;
     const { toPng } = await import('html-to-image');
-    const dataUrl = await toPng(canvasRef.current, { backgroundColor: '#030712' });
+    const dataUrl = await toPng(target, { backgroundColor: '#030712', pixelRatio: 2 });
     const a = document.createElement('a');
     a.href = dataUrl;
     a.download = 'architecture.png';
     a.click();
+  }
+
+  async function handleCopyShareLink() {
+    if (!diagram) return;
+    const url = buildShareUrl(diagram);
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   if (diagram) {
@@ -96,6 +124,12 @@ export default function Home() {
               className="px-3 py-1.5 text-sm bg-gray-800 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed rounded"
             >
               Redo
+            </button>
+            <button
+              onClick={handleCopyShareLink}
+              className="px-3 py-1.5 text-sm bg-gray-800 hover:bg-gray-700 rounded"
+            >
+              {copied ? '복사됨!' : '링크 공유'}
             </button>
             <button
               onClick={handleExport}
