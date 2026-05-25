@@ -19,10 +19,27 @@ AWS: "Amazon EC2", "Amazon RDS", "Amazon S3", "AWS Lambda", "Amazon ECS", "Amazo
      "Amazon SQS", "Amazon SNS", "Amazon ElastiCache", "Amazon CloudFront", "Amazon Route 53",
      "Elastic Load Balancing", "Amazon VPC", "Amazon API Gateway", "AWS CloudWatch",
      "Amazon DynamoDB", "Amazon Redshift", "Amazon Kinesis", "AWS Fargate", "Amazon ECR"
-OSS: "NGINX", "Redis", "PostgreSQL", "MySQL", "MongoDB", "Kafka", "RabbitMQ",
-     "Prometheus", "Grafana", "Elasticsearch", "Kibana", "Docker", "Kubernetes",
-     "GitHub Actions", "Jenkins", "Slack"
-For any other service, use its common name (e.g., "Express", "FastAPI", "Spring Boot").
+GCP: "Google Cloud", "Google Compute Engine", "Google Cloud Storage", "Google Cloud Functions",
+     "Google Cloud Run", "Google Cloud SQL", "Google BigQuery", "Google Bigtable",
+     "Google Pub/Sub", "Google Kubernetes Engine", "Google Dataflow", "Google Dataproc",
+     "Google Cloud Spanner", "Google Cloud Composer"
+Azure: "Microsoft Azure", "Azure Virtual Machines", "Azure Blob Storage", "Azure Functions",
+       "Azure SQL Database", "Azure Cosmos DB", "Azure Service Bus",
+       "Azure Kubernetes Service", "Azure Container Registry", "Azure App Service",
+       "Azure Event Hubs", "Azure Active Directory"
+Databases: "NGINX", "Redis", "PostgreSQL", "MySQL", "MongoDB", "MariaDB", "SQLite",
+           "Microsoft SQL Server", "Oracle Database", "Cassandra", "ClickHouse",
+           "CockroachDB", "Supabase", "etcd", "MinIO"
+Messaging: "Kafka", "RabbitMQ"
+Monitoring: "Prometheus", "Grafana", "Elasticsearch", "Kibana", "Datadog", "Sentry",
+            "New Relic", "OpenTelemetry", "Jaeger"
+Containers/K8s: "Docker", "Kubernetes", "Helm", "Istio", "Argo", "Flux"
+Infrastructure: "Terraform", "Vault", "Consul", "GitHub Actions", "GitHub", "GitLab",
+                "Jenkins", "HAPROXY", "Traefik"
+Big Data: "Apache Spark", "Apache Airflow", "Apache Flink"
+Frameworks: "FastAPI", "Spring Boot", "Django", "Express", "Node.js", "Celery"
+Platforms: "Vercel", "Slack"
+For any other service, use its common name.
 
 You MUST output ONLY a raw JSON object with EXACTLY this structure — no markdown, no explanation:
 
