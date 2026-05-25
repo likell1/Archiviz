@@ -19,6 +19,7 @@ const DiagramCanvas = dynamic(() => import('@/components/diagram/DiagramCanvas')
 export default function Home() {
   const [repoUrl, setRepoUrl] = useState('');
   const [githubToken, setGithubToken] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [meta, setMeta] = useState<{
@@ -200,19 +201,29 @@ export default function Home() {
           </div>
 
           <div>
-            <label className="block text-sm text-gray-500 mb-1">
-              GitHub Token{' '}
-              <span className="text-gray-400">
-                (optional — private repos / org 분석 시 rate limit 방지)
-              </span>
-            </label>
-            <input
-              type="password"
-              value={githubToken}
-              onChange={e => setGithubToken(e.target.value)}
-              placeholder="ghp_xxxxxxxxxxxx"
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition"
-            />
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(v => !v)}
+              className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 transition"
+            >
+              <span>{showAdvanced ? '▾' : '▸'}</span>
+              Advanced
+            </button>
+            {showAdvanced && (
+              <div className="mt-2">
+                <label className="block text-sm text-gray-500 mb-1">
+                  GitHub Token{' '}
+                  <span className="text-gray-400">(private 레포 분석 시 필요)</span>
+                </label>
+                <input
+                  type="password"
+                  value={githubToken}
+                  onChange={e => setGithubToken(e.target.value)}
+                  placeholder="ghp_xxxxxxxxxxxx"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition"
+                />
+              </div>
+            )}
           </div>
 
           <button
