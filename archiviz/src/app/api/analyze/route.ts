@@ -136,13 +136,17 @@ async function callLLM({
     try {
       const message = await client.messages.create({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 4096,
+        max_tokens: 8192,
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }],
       });
 
       const raw = message.content[0];
       if (raw.type !== 'text') throw new Error('Unexpected LLM response type');
+
+      if (message.stop_reason === 'max_tokens') {
+        throw new Error('LLM response was truncated — too many services detected. Try a single repository instead.');
+      }
 
       const stripped = raw.text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
       const json = JSON.parse(stripped);
