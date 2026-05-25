@@ -67,10 +67,23 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const message = lastError instanceof Error ? lastError.message : 'Analysis failed';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: friendlyError(lastError) }, { status: 500 });
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: friendlyError(err) }, { status: 500 });
   }
+}
+
+function friendlyError(err: unknown): string {
+  if (!(err instanceof Error)) return 'Unknown error';
+  // Anthropic SDK throws APIError — message starts with HTTP status + JSON body
+  // e.g. "400 {"type":"error","error":{"type":"invalid_request_error","message":"..."}}"
+  const match = err.message.match(/^\d{3}\s+(\{.+\})$/s);
+  if (match) {
+    try {
+      const body = JSON.parse(match[1]);
+      const inner = body?.error?.message;
+      if (inner) return inner;
+    } catch { /* fall through */ }
+  }
+  return err.message;
 }
