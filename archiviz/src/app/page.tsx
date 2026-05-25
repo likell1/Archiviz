@@ -1,25 +1,39 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import dynamic from 'next/dynamic';
+import { DiagramSchema } from '@/types/diagram';
+import { useDiagramStore } from '@/store/diagramStore';
 
-interface AnalyzeResult {
-  filesAnalyzed: string[];
-  tokensUsed: number;
-  diagram: unknown;
-}
+const DiagramCanvas = dynamic(() => import('@/components/diagram/DiagramCanvas'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex-1 flex items-center justify-center bg-gray-950">
+      <span className="text-gray-500 text-sm">캔버스 로딩 중...</span>
+    </div>
+  ),
+});
 
 export default function Home() {
   const [repoUrl, setRepoUrl] = useState('');
   const [githubToken, setGithubToken] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<AnalyzeResult | null>(null);
+  const [meta, setMeta] = useState<{ filesAnalyzed: string[]; tokensUsed: number } | null>(null);
+
+  const diagram = useDiagramStore((s) => s.diagram);
+  const setDiagram = useDiagramStore((s) => s.setDiagram);
+  const undo = useDiagramStore((s) => s.undo);
+  const redo = useDiagramStore((s) => s.redo);
+  const canUndo = useDiagramStore((s) => s.history.length > 0);
+  const canRedo = useDiagramStore((s) => s.future.length > 0);
+
+  const canvasRef = useRef<HTMLDivElement>(null);
 
   async function handleAnalyze(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setResult(null);
 
     try {
       const res = await fetch('/api/analyze', {
@@ -35,12 +49,75 @@ export default function Home() {
         return;
       }
 
-      setResult(data);
+      setDiagram(data.diagram as DiagramSchema);
+      setMeta({ filesAnalyzed: data.filesAnalyzed, tokensUsed: data.tokensUsed });
     } catch {
       setError('Network error — please try again');
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleExport() {
+    if (!canvasRef.current) return;
+    const { toPng } = await import('html-to-image');
+    const dataUrl = await toPng(canvasRef.current, { backgroundColor: '#030712' });
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = 'architecture.png';
+    a.click();
+  }
+
+  if (diagram) {
+    return (
+      <div className="h-screen flex flex-col bg-gray-950 text-gray-100">
+        {/* 상단 툴바 */}
+        <header className="flex items-center justify-between px-4 py-2 border-b border-gray-800 bg-gray-900 shrink-0">
+          <div className="flex items-center gap-3">
+            <span className="font-bold text-lg">Archiviz</span>
+            <span className="text-gray-500 text-sm truncate max-w-xs">{repoUrl}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {meta && (
+              <span className="text-xs text-gray-500 mr-2">
+                {meta.filesAnalyzed.length}개 파일 · {meta.tokensUsed.toLocaleString()} tokens
+              </span>
+            )}
+            <button
+              onClick={undo}
+              disabled={!canUndo}
+              className="px-3 py-1.5 text-sm bg-gray-800 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed rounded"
+            >
+              Undo
+            </button>
+            <button
+              onClick={redo}
+              disabled={!canRedo}
+              className="px-3 py-1.5 text-sm bg-gray-800 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed rounded"
+            >
+              Redo
+            </button>
+            <button
+              onClick={handleExport}
+              className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 rounded"
+            >
+              PNG 내보내기
+            </button>
+            <button
+              onClick={() => { setDiagram(null as unknown as DiagramSchema); setMeta(null); }}
+              className="px-3 py-1.5 text-sm bg-gray-800 hover:bg-gray-700 rounded"
+            >
+              새 분석
+            </button>
+          </div>
+        </header>
+
+        {/* 캔버스 */}
+        <div ref={canvasRef} className="flex-1 overflow-hidden">
+          <DiagramCanvas diagram={diagram} />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -89,26 +166,6 @@ export default function Home() {
         {error && (
           <div className="mt-6 bg-red-950 border border-red-800 text-red-300 rounded-lg px-4 py-3">
             {error}
-          </div>
-        )}
-
-        {result && (
-          <div className="mt-6 bg-gray-900 border border-gray-700 rounded-lg p-4">
-            <h2 className="text-lg font-semibold mb-3 text-green-400">분석 완료</h2>
-            <p className="text-sm text-gray-400 mb-1">
-              분석 파일: {result.filesAnalyzed.length}개
-            </p>
-            <p className="text-sm text-gray-400 mb-3">
-              사용 토큰: {result.tokensUsed.toLocaleString()}
-            </p>
-            <ul className="text-sm text-gray-500 mb-4 space-y-0.5">
-              {result.filesAnalyzed.map(f => (
-                <li key={f} className="font-mono">• {f}</li>
-              ))}
-            </ul>
-            <pre className="bg-gray-950 rounded p-3 text-xs text-gray-300 overflow-auto max-h-64">
-              {JSON.stringify(result.diagram, null, 2)}
-            </pre>
           </div>
         )}
       </div>
