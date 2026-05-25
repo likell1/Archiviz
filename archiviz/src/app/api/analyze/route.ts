@@ -78,7 +78,7 @@ function friendlyError(err: unknown): string {
   if (!(err instanceof Error)) return 'Unknown error';
   // Anthropic SDK throws APIError — message starts with HTTP status + JSON body
   // e.g. "400 {"type":"error","error":{"type":"invalid_request_error","message":"..."}}"
-  const match = err.message.match(/^\d{3}\s+(\{.+\})$/s);
+  const match = err.message.match(/^\d{3}\s+(\{[\s\S]+\})$/);
   if (match) {
     try {
       const body = JSON.parse(match[1]);
