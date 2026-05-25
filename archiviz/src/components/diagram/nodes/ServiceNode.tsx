@@ -37,15 +37,15 @@ function ServiceNode({ data, selected }: NodeProps<DiagramNode>) {
 
   return (
     <div
-      className={`flex flex-col items-center justify-center w-[120px] h-[80px] rounded-xl bg-gray-800 border-2 transition-colors cursor-pointer select-none ${
-        selected ? 'border-blue-400 shadow-lg shadow-blue-500/20' : 'border-gray-600 hover:border-gray-400'
+      className={`flex flex-col items-center justify-center w-[120px] h-[80px] rounded-xl bg-white border-2 transition-colors cursor-pointer select-none shadow-sm ${
+        selected ? 'border-orange-400 shadow-lg shadow-orange-500/20' : 'border-gray-200 hover:border-gray-400'
       } ${data.external ? 'opacity-75 border-dashed' : ''}`}
       onDoubleClick={handleDoubleClick}
     >
-      <Handle type="target" position={Position.Left} className="!bg-blue-400 !border-gray-900" />
-      <Handle type="source" position={Position.Right} className="!bg-blue-400 !border-gray-900" />
-      <Handle type="target" position={Position.Top} className="!bg-blue-400 !border-gray-900" />
-      <Handle type="source" position={Position.Bottom} className="!bg-blue-400 !border-gray-900" />
+      <Handle type="target" position={Position.Left} className="!bg-orange-400 !border-white" />
+      <Handle type="source" position={Position.Right} className="!bg-orange-400 !border-white" />
+      <Handle type="target" position={Position.Top} className="!bg-orange-400 !border-white" />
+      <Handle type="source" position={Position.Bottom} className="!bg-orange-400 !border-white" />
 
       <div className="relative w-8 h-8 mb-1">
         <Image
@@ -66,10 +66,10 @@ function ServiceNode({ data, selected }: NodeProps<DiagramNode>) {
           onChange={(e) => setLabel(e.target.value)}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
-          className="w-[100px] text-center text-[11px] bg-gray-700 text-white rounded px-1 outline-none border border-blue-400"
+          className="w-[100px] text-center text-[11px] bg-gray-100 text-gray-900 rounded px-1 outline-none border border-orange-400"
         />
       ) : (
-        <span className="text-[11px] text-gray-200 text-center leading-tight px-1 truncate w-full text-center">
+        <span className="text-[11px] text-gray-700 text-center leading-tight px-1 truncate w-full text-center">
           {data.label}
         </span>
       )}
