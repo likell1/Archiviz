@@ -5,12 +5,13 @@ import dynamic from 'next/dynamic';
 import { DiagramSchema } from '@/types/diagram';
 import { useDiagramStore } from '@/store/diagramStore';
 import { buildShareUrl, readDiagramFromHash } from '@/lib/share';
+import { detectUrlMode } from '@/lib/github/fetcher';
 
 const DiagramCanvas = dynamic(() => import('@/components/diagram/DiagramCanvas'), {
   ssr: false,
   loading: () => (
-    <div className="flex-1 flex items-center justify-center bg-gray-950">
-      <span className="text-gray-500 text-sm">캔버스 로딩 중...</span>
+    <div className="flex-1 flex items-center justify-center bg-gray-50">
+      <span className="text-gray-400 text-sm">캔버스 로딩 중...</span>
     </div>
   ),
 });
@@ -20,7 +21,11 @@ export default function Home() {
   const [githubToken, setGithubToken] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [meta, setMeta] = useState<{ filesAnalyzed: string[]; tokensUsed: number } | null>(null);
+  const [meta, setMeta] = useState<{
+    filesAnalyzed: string[];
+    reposAnalyzed: string[] | null;
+    tokensUsed: number;
+  } | null>(null);
 
   const diagram = useDiagramStore((s) => s.diagram);
   const setDiagram = useDiagramStore((s) => s.setDiagram);
@@ -32,13 +37,13 @@ export default function Home() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
 
-  // URL 해시에서 다이어그램 복원
+  const urlMode = detectUrlMode(repoUrl);
+
   useEffect(() => {
     const shared = readDiagramFromHash();
     if (shared) setDiagram(shared);
   }, [setDiagram]);
 
-  // 다이어그램 변경 시 URL 해시 업데이트
   useEffect(() => {
     if (!diagram) {
       history.replaceState(null, '', window.location.pathname);
@@ -68,7 +73,11 @@ export default function Home() {
       }
 
       setDiagram(data.diagram as DiagramSchema);
-      setMeta({ filesAnalyzed: data.filesAnalyzed, tokensUsed: data.tokensUsed });
+      setMeta({
+        filesAnalyzed: data.filesAnalyzed,
+        reposAnalyzed: data.reposAnalyzed ?? null,
+        tokensUsed: data.tokensUsed,
+      });
     } catch {
       setError('Network error — please try again');
     } finally {
@@ -81,7 +90,7 @@ export default function Home() {
     const target = reactFlowViewport ?? canvasRef.current;
     if (!target) return;
     const { toPng } = await import('html-to-image');
-    const dataUrl = await toPng(target, { backgroundColor: '#030712', pixelRatio: 2 });
+    const dataUrl = await toPng(target, { backgroundColor: '#f9fafb', pixelRatio: 2 });
     const a = document.createElement('a');
     a.href = dataUrl;
     a.download = 'architecture.png';
@@ -99,11 +108,16 @@ export default function Home() {
   if (diagram) {
     return (
       <div className="h-screen flex flex-col bg-gray-50 text-gray-900">
-        {/* 상단 툴바 */}
         <header className="flex items-center justify-between px-4 py-2 border-b border-gray-200 bg-white shrink-0">
           <div className="flex items-center gap-3">
             <span className="font-bold text-lg text-orange-500">Archiviz</span>
-            <span className="text-gray-400 text-sm truncate max-w-xs">{repoUrl}</span>
+            {meta?.reposAnalyzed ? (
+              <span className="text-gray-400 text-sm">
+                🏢 {meta.reposAnalyzed.length}개 레포
+              </span>
+            ) : (
+              <span className="text-gray-400 text-sm truncate max-w-xs">{repoUrl}</span>
+            )}
           </div>
           <div className="flex items-center gap-2">
             {meta && (
@@ -146,7 +160,6 @@ export default function Home() {
           </div>
         </header>
 
-        {/* 캔버스 */}
         <div ref={canvasRef} className="flex-1 overflow-hidden">
           <DiagramCanvas diagram={diagram} />
         </div>
@@ -159,25 +172,39 @@ export default function Home() {
       <div className="w-full max-w-2xl">
         <h1 className="text-4xl font-bold mb-2 text-center text-orange-500">Archiviz</h1>
         <p className="text-gray-500 text-center mb-10">
-          GitHub 레포지토리 URL을 입력하면 아키텍처 다이어그램을 자동 생성합니다
+          GitHub 레포지토리 또는 Organization URL을 입력하면 아키텍처 다이어그램을 자동 생성합니다
         </p>
 
         <form onSubmit={handleAnalyze} className="flex flex-col gap-4">
           <div>
-            <label className="block text-sm text-gray-500 mb-1">GitHub Repository URL</label>
+            <label className="block text-sm text-gray-500 mb-1">GitHub URL</label>
             <input
               type="url"
               value={repoUrl}
               onChange={e => setRepoUrl(e.target.value)}
-              placeholder="https://github.com/owner/repo"
+              placeholder="https://github.com/owner/repo  또는  https://github.com/org"
               required
               className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition"
             />
+            {/* URL 모드 인디케이터 */}
+            {urlMode === 'org' && (
+              <p className="mt-1.5 text-sm text-blue-600 flex items-center gap-1">
+                🏢 Organization mode — 최근 활동 레포 최대 15개 자동 분석
+              </p>
+            )}
+            {urlMode === 'repo' && (
+              <p className="mt-1.5 text-sm text-green-600 flex items-center gap-1">
+                📦 Repository mode
+              </p>
+            )}
           </div>
 
           <div>
             <label className="block text-sm text-gray-500 mb-1">
-              GitHub Token <span className="text-gray-400">(optional — private repos only)</span>
+              GitHub Token{' '}
+              <span className="text-gray-400">
+                (optional — private repos / org 분석 시 rate limit 방지)
+              </span>
             </label>
             <input
               type="password"
@@ -193,7 +220,9 @@ export default function Home() {
             disabled={loading}
             className="bg-orange-500 hover:bg-orange-600 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition"
           >
-            {loading ? '분석 중...' : '다이어그램 생성'}
+            {loading
+              ? urlMode === 'org' ? '레포 분석 중...' : '분석 중...'
+              : '다이어그램 생성'}
           </button>
         </form>
 
