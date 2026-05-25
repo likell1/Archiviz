@@ -98,48 +98,48 @@ export default function Home() {
 
   if (diagram) {
     return (
-      <div className="h-screen flex flex-col bg-gray-950 text-gray-100">
+      <div className="h-screen flex flex-col bg-gray-50 text-gray-900">
         {/* 상단 툴바 */}
-        <header className="flex items-center justify-between px-4 py-2 border-b border-gray-800 bg-gray-900 shrink-0">
+        <header className="flex items-center justify-between px-4 py-2 border-b border-gray-200 bg-white shrink-0">
           <div className="flex items-center gap-3">
-            <span className="font-bold text-lg">Archiviz</span>
-            <span className="text-gray-500 text-sm truncate max-w-xs">{repoUrl}</span>
+            <span className="font-bold text-lg text-orange-500">Archiviz</span>
+            <span className="text-gray-400 text-sm truncate max-w-xs">{repoUrl}</span>
           </div>
           <div className="flex items-center gap-2">
             {meta && (
-              <span className="text-xs text-gray-500 mr-2">
+              <span className="text-xs text-gray-400 mr-2">
                 {meta.filesAnalyzed.length}개 파일 · {meta.tokensUsed.toLocaleString()} tokens
               </span>
             )}
             <button
               onClick={undo}
               disabled={!canUndo}
-              className="px-3 py-1.5 text-sm bg-gray-800 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed rounded"
+              className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed rounded text-gray-700"
             >
               Undo
             </button>
             <button
               onClick={redo}
               disabled={!canRedo}
-              className="px-3 py-1.5 text-sm bg-gray-800 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed rounded"
+              className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed rounded text-gray-700"
             >
               Redo
             </button>
             <button
               onClick={handleCopyShareLink}
-              className="px-3 py-1.5 text-sm bg-gray-800 hover:bg-gray-700 rounded"
+              className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded text-gray-700"
             >
               {copied ? '복사됨!' : '링크 공유'}
             </button>
             <button
               onClick={handleExport}
-              className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 rounded"
+              className="px-3 py-1.5 text-sm bg-orange-500 hover:bg-orange-600 text-white rounded"
             >
               PNG 내보내기
             </button>
             <button
               onClick={() => { setDiagram(null as unknown as DiagramSchema); setMeta(null); }}
-              className="px-3 py-1.5 text-sm bg-gray-800 hover:bg-gray-700 rounded"
+              className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded text-gray-700"
             >
               새 분석
             </button>
@@ -155,50 +155,50 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-950 text-gray-100 flex flex-col items-center justify-center p-8">
+    <main className="min-h-screen bg-white text-gray-900 flex flex-col items-center justify-center p-8">
       <div className="w-full max-w-2xl">
-        <h1 className="text-4xl font-bold mb-2 text-center">Archiviz</h1>
-        <p className="text-gray-400 text-center mb-10">
+        <h1 className="text-4xl font-bold mb-2 text-center text-orange-500">Archiviz</h1>
+        <p className="text-gray-500 text-center mb-10">
           GitHub 레포지토리 URL을 입력하면 아키텍처 다이어그램을 자동 생성합니다
         </p>
 
         <form onSubmit={handleAnalyze} className="flex flex-col gap-4">
           <div>
-            <label className="block text-sm text-gray-400 mb-1">GitHub Repository URL</label>
+            <label className="block text-sm text-gray-500 mb-1">GitHub Repository URL</label>
             <input
               type="url"
               value={repoUrl}
               onChange={e => setRepoUrl(e.target.value)}
               placeholder="https://github.com/owner/repo"
               required
-              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-gray-100 placeholder-gray-600 focus:outline-none focus:border-blue-500 transition"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1">
-              GitHub Token <span className="text-gray-600">(optional — private repos only)</span>
+            <label className="block text-sm text-gray-500 mb-1">
+              GitHub Token <span className="text-gray-400">(optional — private repos only)</span>
             </label>
             <input
               type="password"
               value={githubToken}
               onChange={e => setGithubToken(e.target.value)}
               placeholder="ghp_xxxxxxxxxxxx"
-              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-gray-100 placeholder-gray-600 focus:outline-none focus:border-blue-500 transition"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition"
+            className="bg-orange-500 hover:bg-orange-600 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition"
           >
             {loading ? '분석 중...' : '다이어그램 생성'}
           </button>
         </form>
 
         {error && (
-          <div className="mt-6 bg-red-950 border border-red-800 text-red-300 rounded-lg px-4 py-3">
+          <div className="mt-6 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3">
             {error}
           </div>
         )}

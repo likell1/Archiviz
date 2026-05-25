@@ -5,19 +5,19 @@ import { NodeProps, NodeResizer } from 'reactflow';
 import { DiagramGroup } from '@/types/diagram';
 
 const GROUP_COLORS: Record<DiagramGroup['type'], string> = {
-  vpc:     'border-blue-500/40 bg-blue-950/20',
-  subnet:  'border-green-500/40 bg-green-950/20',
-  az:      'border-purple-500/40 bg-purple-950/20',
-  cluster: 'border-orange-500/40 bg-orange-950/20',
-  custom:  'border-gray-500/40 bg-gray-800/20',
+  vpc:     'border-blue-300 bg-blue-50/60',
+  subnet:  'border-green-300 bg-green-50/60',
+  az:      'border-purple-300 bg-purple-50/60',
+  cluster: 'border-orange-300 bg-orange-50/60',
+  custom:  'border-gray-300 bg-gray-50/60',
 };
 
 const LABEL_COLORS: Record<DiagramGroup['type'], string> = {
-  vpc:     'text-blue-400',
-  subnet:  'text-green-400',
-  az:      'text-purple-400',
-  cluster: 'text-orange-400',
-  custom:  'text-gray-400',
+  vpc:     'text-blue-600',
+  subnet:  'text-green-600',
+  az:      'text-purple-600',
+  cluster: 'text-orange-600',
+  custom:  'text-gray-500',
 };
 
 function GroupNode({ data, selected }: NodeProps<DiagramGroup>) {
@@ -29,8 +29,8 @@ function GroupNode({ data, selected }: NodeProps<DiagramGroup>) {
         isVisible={selected}
         minWidth={120}
         minHeight={80}
-        lineClassName="!border-blue-400"
-        handleClassName="!bg-blue-400 !border-gray-900"
+        lineClassName="!border-orange-400"
+        handleClassName="!bg-orange-400 !border-white"
       />
       <span
         className={`absolute top-2 left-3 text-xs font-semibold tracking-wide uppercase ${LABEL_COLORS[data.type]}`}

@@ -66,8 +66,8 @@ function Canvas({ diagram }: Props) {
 
   if (!layoutReady) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-gray-950">
-        <span className="text-gray-500 text-sm">레이아웃 계산 중...</span>
+      <div className="flex-1 flex items-center justify-center bg-gray-50">
+        <span className="text-gray-400 text-sm">레이아웃 계산 중...</span>
       </div>
     );
   }
@@ -84,14 +84,14 @@ function Canvas({ diagram }: Props) {
       fitView
       fitViewOptions={{ padding: 0.2 }}
       defaultEdgeOptions={{ type: 'custom', data: { style: 'solid' } }}
-      className="bg-gray-950"
+      className="bg-gray-50"
     >
-      <Background color="#374151" gap={20} size={1} />
-      <Controls className="!bg-gray-800 !border-gray-600 !shadow-none" />
+      <Background color="#e5e7eb" gap={20} size={1} />
+      <Controls className="!bg-white !border-gray-200 !shadow-sm" />
       <MiniMap
-        className="!bg-gray-900 !border-gray-700"
-        nodeColor={(n) => (n.type === 'group' ? '#1f2937' : '#3b82f6')}
-        maskColor="rgba(0,0,0,0.6)"
+        className="!bg-white !border-gray-200"
+        nodeColor={(n) => (n.type === 'group' ? '#f3f4f6' : '#f97316')}
+        maskColor="rgba(0,0,0,0.05)"
       />
     </ReactFlow>
   );
