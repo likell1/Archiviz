@@ -33,12 +33,16 @@ export const FILE_PRIORITY_PATTERNS: PriorityPattern[] = [
 const MAX_FILES = 15;
 const MAX_CONTENT_LENGTH = 8000;
 
+// Tighter budget per-repo when analysing a whole org
+const MAX_FILES_ORG = 5;
+const MAX_CONTENT_LENGTH_ORG = 2000;
+
 export interface PrioritizedFile {
   path: string;
   priority: number;
 }
 
-export function selectPriorityFiles(filePaths: string[]): PrioritizedFile[] {
+export function selectPriorityFiles(filePaths: string[], orgMode = false): PrioritizedFile[] {
   const matched: PrioritizedFile[] = [];
 
   for (const filePath of filePaths) {
@@ -50,11 +54,13 @@ export function selectPriorityFiles(filePaths: string[]): PrioritizedFile[] {
     }
   }
 
+  const limit = orgMode ? MAX_FILES_ORG : MAX_FILES;
   matched.sort((a, b) => a.priority - b.priority);
-  return matched.slice(0, MAX_FILES);
+  return matched.slice(0, limit);
 }
 
-export function truncateContent(content: string): string {
-  if (content.length <= MAX_CONTENT_LENGTH) return content;
-  return content.slice(0, MAX_CONTENT_LENGTH) + '\n... (truncated)';
+export function truncateContent(content: string, orgMode = false): string {
+  const limit = orgMode ? MAX_CONTENT_LENGTH_ORG : MAX_CONTENT_LENGTH;
+  if (content.length <= limit) return content;
+  return content.slice(0, limit) + '\n... (truncated)';
 }
