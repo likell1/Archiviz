@@ -53,7 +53,8 @@ export async function POST(req: NextRequest) {
         const raw = message.content[0];
         if (raw.type !== 'text') throw new Error('Unexpected LLM response type');
 
-        const json = JSON.parse(raw.text);
+        const stripped = raw.text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
+        const json = JSON.parse(stripped);
         const diagram = DiagramSchemaZod.parse(json);
 
         return NextResponse.json({
