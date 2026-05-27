@@ -77,24 +77,29 @@ extract the overall system architecture as structured JSON.
 Rules:
 - Each file is labeled with its repository name — treat each repo as a distinct service or component
 - Identify all services, databases, message queues, and external APIs across all repos
-- Group each repository's application services into a cluster (type: "cluster") using the repo name as the label
 - Normalize service names (e.g., "redis" → "Redis", "nginx" → "NGINX")
-- Use "external: true" for third-party APIs, CDNs, or services outside the main infrastructure
 - Set direction "LR" for pipeline-style architectures, "TB" for layered architectures
 - Infer cloud provider from terraform provider blocks, SDK imports, or service names
 - Every node id referenced in edges must exist in the nodes array
 - Every node's group field must either be null or match an id in the groups array
 
-Shared service deduplication (IMPORTANT):
-- If the same infrastructure service (e.g. Amazon S3, PostgreSQL, Redis, Kafka) is used by 2 or more repositories, create exactly ONE shared node for it — do NOT create a separate node per repo
-- Place all shared services together in a single group with type "custom" and label "Shared Infrastructure" (id: "shared")
-- Each repo cluster that uses a shared service connects to that single shared node via an edge
-- A service is "shared" only when you see explicit evidence (env var, SDK import, URL) of it being used in multiple repos — do not assume sharing
+Grouping by infrastructure type (IMPORTANT — do NOT group by repository):
+Instead of one cluster per repo, organize ALL nodes into these infrastructure-type groups:
+
+1. "Application Layer" (id: "grp_app", type: "cluster") — application servers, API servers, workers, and other runtime services found in each repo. Include the repo name in the node label (e.g. "API Server (repo-name)") so the source is still visible.
+2. "AWS Infrastructure" (id: "grp_aws", type: "cluster") — only if AWS services are present. All AWS-managed services go here.
+3. "GCP Infrastructure" (id: "grp_gcp", type: "cluster") — only if GCP services are present.
+4. "Azure Infrastructure" (id: "grp_azure", type: "cluster") — only if Azure services are present.
+5. "External APIs / Data" (id: "grp_external", type: "custom") — third-party SaaS, external APIs, CDNs, and services not hosted by the org (e.g. Stripe, Twilio, Slack, SendGrid). Set external: true on these nodes.
+6. "Shared Infrastructure" (id: "grp_shared", type: "custom") — self-hosted or cloud-agnostic shared services used across multiple repos (e.g. Redis, PostgreSQL, Kafka, NGINX). Only create this group if such services exist.
+
+- Omit any group that has no nodes.
+- If a service clearly belongs to a specific cloud provider group, place it there — not in Shared Infrastructure.
+- Each service appears in exactly ONE group — no duplication across groups.
 
 Edge rules (STRICT — fewer edges is better):
 - ONLY draw an edge when there is EXPLICIT evidence in the files: depends_on entry, a URL/hostname env var pointing to another service (e.g. DATABASE_URL, REDIS_HOST), or a direct SDK call referencing that service by name
-- For cross-repo edges: only connect repos when one repo explicitly references the other's service URL, API endpoint, or service name in config/env files
-- DO NOT infer edges from co-location, same cluster, or general architectural convention
+- DO NOT infer edges from co-location, same group, or general architectural convention
 - DO NOT draw edges between every service pair just because they are in the same system
 - Every edge MUST have a non-empty label briefly describing the connection (e.g. "SQL", "HTTP", "pub/sub", "cache") — if you cannot name the connection, do not draw it
 
