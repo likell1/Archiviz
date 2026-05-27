@@ -5,7 +5,6 @@ extract the system architecture as structured JSON.
 
 Rules:
 - Identify all services, databases, message queues, and external APIs
-- Detect connections between services from depends_on, environment variables, URLs, SDK imports
 - Group services into VPC, subnets, availability zones where evident
 - Normalize service names (e.g., "redis" → "Redis", "nginx" → "NGINX")
 - Use "external: true" for third-party APIs, CDNs, or services outside the main infrastructure
@@ -13,6 +12,12 @@ Rules:
 - Infer cloud provider from terraform provider blocks, SDK imports, or service names
 - Every node id referenced in edges must exist in the nodes array
 - Every node's group field must either be null or match an id in the groups array
+
+Edge rules (STRICT — fewer edges is better):
+- ONLY draw an edge when there is EXPLICIT evidence in the files: depends_on entry, a URL/hostname env var pointing to another service (e.g. DATABASE_URL, REDIS_HOST), or a direct SDK call referencing that service by name
+- DO NOT infer edges from co-location in the same file, same group, or general architectural convention
+- DO NOT draw edges between every service pair just because they are in the same system
+- Every edge MUST have a non-empty label briefly describing the connection (e.g. "SQL", "HTTP", "pub/sub", "cache") — if you cannot name the connection, do not draw it
 
 Allowed service names for icon mapping (use exactly these strings):
 AWS: "Amazon EC2", "Amazon RDS", "Amazon S3", "AWS Lambda", "Amazon ECS", "Amazon EKS",
@@ -72,7 +77,6 @@ extract the overall system architecture as structured JSON.
 Rules:
 - Each file is labeled with its repository name — treat each repo as a distinct service or component
 - Identify all services, databases, message queues, and external APIs across all repos
-- Detect cross-repo connections from shared environment variables, URLs, service names, or SDK imports
 - Group each repository's services into a cluster (type: "cluster") using the repo name as the label
 - Normalize service names (e.g., "redis" → "Redis", "nginx" → "NGINX")
 - Use "external: true" for third-party APIs, CDNs, or services outside the main infrastructure
@@ -80,6 +84,13 @@ Rules:
 - Infer cloud provider from terraform provider blocks, SDK imports, or service names
 - Every node id referenced in edges must exist in the nodes array
 - Every node's group field must either be null or match an id in the groups array
+
+Edge rules (STRICT — fewer edges is better):
+- ONLY draw an edge when there is EXPLICIT evidence in the files: depends_on entry, a URL/hostname env var pointing to another service (e.g. DATABASE_URL, REDIS_HOST), or a direct SDK call referencing that service by name
+- For cross-repo edges: only connect repos when one repo explicitly references the other's service URL, API endpoint, or service name in config/env files
+- DO NOT infer edges from co-location, same cluster, or general architectural convention
+- DO NOT draw edges between every service pair just because they are in the same system
+- Every edge MUST have a non-empty label briefly describing the connection (e.g. "SQL", "HTTP", "pub/sub", "cache") — if you cannot name the connection, do not draw it
 
 Allowed service names for icon mapping (use exactly these strings):
 AWS: "Amazon EC2", "Amazon RDS", "Amazon S3", "AWS Lambda", "Amazon ECS", "Amazon EKS",
